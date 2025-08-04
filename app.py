@@ -107,6 +107,7 @@ def dashboard():
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
+            s3_key = f"{user.name}_{user.id}/{filename}"
             try:
                 s3_client = boto3.client(
                     's3',
@@ -119,9 +120,9 @@ def dashboard():
                 s3_client.upload_fileobj(
                     file,
                     S3_BUCKET,
-                    filename,
+                    s3_key,
                 )
-                file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{filename}"
+                file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
                 new_file = File(file_url=file_url, user_id=user.id)
                 db.session.add(new_file)
                 db.session.commit()
@@ -145,16 +146,24 @@ def dashboard():
 @app.route('/download/<filename>')
 def download_file(filename):
     try:
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('You must be logged in to download files.', 'danger')
+            return redirect(url_for('login'))
+        user = User.query.get(user_id)
+        if not user:
+            flash('User not found.', 'danger')
+            return redirect(url_for('dashboard'))
+        s3_key = f"{user.name}_{user.id}/{filename}"
         s3_client = boto3.client(
-                    's3',
-                    region_name=S3_REGION,
-                    aws_access_key_id=S3_ACCESS_KEY,
-                    aws_secret_access_key=S3_SECRET_KEY,
-                    config=Config(signature_version='s3v4')
-                )
-
+            's3',
+            region_name=S3_REGION,
+            aws_access_key_id=S3_ACCESS_KEY,
+            aws_secret_access_key=S3_SECRET_KEY,
+            config=Config(signature_version='s3v4')
+        )
         file_stream = BytesIO()
-        s3_client.download_fileobj(S3_BUCKET, filename, file_stream)
+        s3_client.download_fileobj(S3_BUCKET, s3_key, file_stream)
         file_stream.seek(0)
         return send_file(file_stream, as_attachment=True, download_name=filename)
     except Exception as e:
