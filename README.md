@@ -5,7 +5,7 @@ A Flask web application for user registration, login, and file uploads to AWS S3
 ## Features
 - User registration and login
 - Admin and user roles (admin can see all uploads, users see only their own)
-- File upload (max 5MB) to AWS S3
+- File upload (max 10MB) to AWS S3
 - File listing dashboard
 - Flash messages for feedback
 
@@ -22,7 +22,7 @@ A Flask web application for user registration, login, and file uploads to AWS S3
 ### 1. Clone the repository
 ```bash
 git clone <repo-url>
-cd pitchitonTask
+cd s3_file_upload_using_flask
 ```
 
 ### 2. Create a Python virtual environment
@@ -58,7 +58,7 @@ The app will be available at http://127.0.0.1:5000/
 
 ## Usage
 - Register a new user or login as admin.
-- Upload files (max 5MB, stored on S3).
+- Upload files (max 10MB, stored on S3).
 - Admin can see all uploads; users see only their own.
 
 ## File Structure
